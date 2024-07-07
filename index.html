@@ -3,106 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flappy Bird Clone</title>
+    <title>КУДРЯ ПІТУХ</title>
     <style>
         body {
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background-color: #70c5ce;
-}
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #70c5ce;
+        }
 
-#game-container {
-    position: relative;
-    text-align: center;
-}
+        #game-container {
+            position: relative;
+            width: 320px;
+            height: 480px;
+            border: 2px solid #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
 
-canvas {
-    background-color: #70c5ce;
-    border: 2px solid #000;
-}
+        #background-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 1;
+        }
 
-#startButton {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    padding: 10px 20px;
-    font-size: 18px;
-    display: none;
-}
+        #clicker-count {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 5px 10px;
+            border-radius: 5px;
+            z-index: 10;
+        }
 
+        #clicker-image {
+            width: 200px;
+            height: 200px;
+            background-image: url('1.jpg');
+            background-size: cover;
+            border: 2px solid #000;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .click-animation {
+            position: absolute;
+            font-size: 24px;
+            color: black; /* Змінено на чорний */
+            font-weight: bold;
+            animation: fadeOut 1s ease forwards;
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        @keyframes fadeOut {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+        }
+
+        #video-container {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+        }
+
+        #video-container video {
+            width: 90%;
+            max-width: 600px;
+        }
     </style>
 </head>
 <body>
     <div id="game-container">
-        <canvas id="gameCanvas" width="320" height="480"></canvas>
-        <button id="startButton" onclick="startGame()">Start Game</button>
+        <img id="background-image" src="2.jpg" alt="Background Image">
+        <div id="clicker-count">Петухів: 0</div>
+        <div id="clicker-image" onclick="incrementCounter(event)"></div>
+        <div id="video-container">
+            <video controls>
+                <source src="3.mp4" type="video/mp4">
+                Ваш браузер не підтримує відео тег.
+            </video>
+        </div>
     </div>
     <script>
-        const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-let bird = { x: 50, y: 150, width: 20, height: 20, gravity: 1.5, lift: -25, velocity: 0 };
-let pipes = [];
-let frame = 0;
-let gameOver = false;
+        let clickCount = 0;
 
-function startGame() {
-    document.getElementById('startButton').style.display = 'none';
-    bird = { x: 50, y: 150, width: 20, height: 20, gravity: 1.5, lift: -25, velocity: 0 };
-    pipes = [];
-    frame = 0;
-    gameOver = false;
-    gameLoop();
-}
+        function incrementCounter(event) {
+            clickCount++;
+            document.getElementById('clicker-count').innerText = `Петухів: ${clickCount}`;
 
-function gameLoop() {
-    if (gameOver) {
-        document.getElementById('startButton').style.display = 'block';
-        return;
-    }
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    frame++;
-    if (frame % 100 === 0) {
-        let pipeHeight = Math.floor(Math.random() * (canvas.height / 2));
-        pipes.push({ x: canvas.width, y: 0, width: 20, height: pipeHeight });
-        pipes.push({ x: canvas.width, y: pipeHeight + 100, width: 20, height: canvas.height - pipeHeight - 100 });
-    }
-    pipes.forEach(pipe => {
-        pipe.x -= 2;
-        ctx.fillStyle = '#0f0';
-        ctx.fillRect(pipe.x, pipe.y, pipe.width, pipe.height);
-        if (collides(bird, pipe)) {
-            gameOver = true;
+            const rect = event.target.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+
+            showClickAnimation(x, y, event.target);
+
+            if (clickCount === 100) {
+                document.getElementById('video-container').style.display = 'flex';
+            }
         }
-    });
-    pipes = pipes.filter(pipe => pipe.x + pipe.width > 0);
-    bird.velocity += bird.gravity;
-    bird.y += bird.velocity;
-    if (bird.y + bird.height > canvas.height || bird.y < 0) {
-        gameOver = true;
-    }
-    ctx.fillStyle = '#ff0';
-    ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
-    if (!gameOver) {
-        requestAnimationFrame(gameLoop);
-    }
-}
 
-function collides(bird, pipe) {
-    return bird.x < pipe.x + pipe.width && bird.x + bird.width > pipe.x && bird.y < pipe.y + pipe.height && bird.y + bird.height > pipe.y;
-}
+        function showClickAnimation(x, y, parent) {
+            const animation = document.createElement('div');
+            animation.className = 'click-animation';
+            animation.style.left = `${x}px`;
+            animation.style.top = `${y}px`;
+            animation.innerText = '+1';
 
-canvas.addEventListener('click', () => {
-    bird.velocity = bird.lift;
-});
+            parent.appendChild(animation);
 
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('startButton').style.display = 'block';
-});
-
+            setTimeout(() => {
+                animation.remove();
+            }, 1000);
+        }
     </script>
 </body>
 </html>
